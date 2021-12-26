@@ -1,29 +1,40 @@
 import React, { useEffect } from "react";
 import { View, Text, FlatList, Image, Dimensions } from "react-native";
-import { ActivityIndicator } from "react-native-paper";
+import { ActivityIndicator, Button, IconButton } from "react-native-paper";
 import ScalableImage from "./ScalableImage";
+import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
+import { Chapter, Manga } from "./models";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import database from "./database";
 
 export default function Reader({ navigation, route }: any) {
-  const manga = route.params.manga;
-  const chapter = route.params.chapter;
+  const manga: Manga = route.params.manga;
+  const chapter: Chapter = route.params.chapter;
 
   const [images, setImages] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
 
+  const [refresh, setRefresh] = React.useState<boolean>(false);
+
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: manga.Name,
+      headerTitle: manga.name,
     });
 
     fetch(
-      `https://manganato.herokuapp.com/manga/${manga.ID}/chapter/${chapter.ID}`
+      `https://manganato.herokuapp.com/manga/${manga.id}/chapter/${chapter.id}`
     )
       .then((response) => response.json())
-      .then((data) => {
+      .then(async (data) => {
+        await database.insertHistory({
+          manga_id: manga.id,
+          chapter_id: chapter.id,
+          read_at: new Date().toISOString(),
+        });
         setImages(data);
         setLoading(false);
       });
-  }, []);
+  }, [refresh]);
 
   if (loading) {
     return (
@@ -50,6 +61,8 @@ export default function Reader({ navigation, route }: any) {
           style={{
             flex: 1,
           }}
+          // maxToRenderPerBatch={1}
+          bounces={false}
           data={images}
           renderItem={({ item }) => {
             return (
@@ -61,48 +74,90 @@ export default function Reader({ navigation, route }: any) {
             );
           }}
           keyExtractor={(item) => item}
+          // initialNumToRender={2}
+          // maxToRenderPerBatch={5}
+          ListHeaderComponent={() => (
+            <RederNavigationComponent
+              navigation={navigation}
+              chapter={chapter}
+              onForward={() => {
+                // get previous chapter
+                const index = manga.chapters.findIndex(
+                  (c) => c.id === chapter.id
+                );
+                if (index > 0) {
+                  const prevChapter = manga.chapters[index - 1];
+
+                  navigation.navigate("Reader", {
+                    manga: manga,
+                    chapter: prevChapter,
+                  });
+
+                  setLoading(true);
+                  setRefresh(true);
+                }
+              }}
+            />
+          )}
+          ListFooterComponent={() => (
+            <RederNavigationComponent
+              navigation={navigation}
+              chapter={chapter}
+            />
+          )}
         />
       )}
     </View>
   );
 }
 
-function img() {
+function RederNavigationComponent({ navigation, chapter, onForward }: any) {
   return (
-    <Image
-      source={{
-        uri: "https://s8.mkklcdnv6temp.com/mangakakalot/m1/mj926759/chapter_34/1.jpg",
-        headers: {
-          authority: "s8.mkklcdnv6temp.com",
-          "cache-control": "max-age=0",
-          "sec-ch-ua":
-            '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": '"macOS"',
-          "upgrade-insecure-requests": "1",
-          "user-agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
-          accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-          "sec-fetch-site": "cross-site",
-          "sec-fetch-mode": "navigate",
-          "sec-fetch-user": "?1",
-          "sec-fetch-dest": "document",
-          referer: "https://readmanganato.com/",
-          "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-        },
-      }}
-      onError={(e) => {
-        console.log(e);
-      }}
-      onProgress={(e) => {
-        console.log(e);
-      }}
+    <View
       style={{
         flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#ddd",
       }}
-      // width={Dimensions.get("window").width}
-      // height={Dimensions.get("window").height}
-    ></Image>
+    >
+      <View
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <IconButton
+          icon={() => (
+            <MaterialIcons name="arrow-back" size={24} color="black" />
+          )}
+          onPress={() => {
+            navigation.goBack();
+          }}
+        />
+
+        <Text
+          style={{
+            flex: 1,
+            // textAlign: "center",
+          }}
+        >
+          {chapter.chapter_name}
+        </Text>
+        {/* <IconButton
+          icon={() => (
+            <MaterialIcons name="arrow-forward" size={24} color="black" />
+          )}
+          onPress={() => {
+            onForward();
+          }}
+        /> */}
+      </View>
+    </View>
   );
 }

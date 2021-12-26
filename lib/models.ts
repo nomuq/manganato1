@@ -1,34 +1,34 @@
 export interface Manga {
-  ID: string;
-  Name: string;
-  Alternatives: string;
-  Author: Author;
-  Status: string;
-  Updated: string;
-  Views: string;
-  Rating: string;
-  Description: string;
-  Genres: Genre[];
-  Chapters: Chapter[];
+  id: string;
+  name: string;
+  image: string;
+  alternatives: string;
+  author: Author;
+  status: string;
+  updated: string;
+  views: string;
+  rating: string;
+  description: string;
+  genres: Genre[];
+  chapters: Chapter[];
 }
 
 export interface Author {
-  ID: string;
-  Name: string;
-  Mangas: null;
+  id: string;
+  name: string;
 }
 
 export interface Chapter {
-  ID: string;
-  MangaID: string;
-  ChapterName: string;
-  Views: string;
-  Uploaded: string;
-  Pages: string[];
+  id: string;
+  manga_id: string;
+  chapter_name: string;
+  views: string;
+  uploaded: string;
+  pages: string[];
 }
 
 export interface Genre {
-  ID: string;
-  GenreName: string;
+  id: string;
+  genre_name: string;
   Mangas: null;
 }

@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import React, { useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
+import database, { History } from "./database";
 import { Manga } from "./models";
 
 export default function MangaInfo({ navigation, route }: any) {
@@ -9,6 +10,7 @@ export default function MangaInfo({ navigation, route }: any) {
 
   const [mangaInfo, setMangaInfo] = React.useState<Manga>(manga);
   const [loading, setLoading] = React.useState<boolean>(true);
+  const [history, setHistory] = React.useState<History[]>([]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -16,9 +18,16 @@ export default function MangaInfo({ navigation, route }: any) {
     });
 
     // get manga details from https://manganato.herokuapp.com/manga/lt989228
-    fetch(`https://manganato.herokuapp.com/manga/${manga.ID}`)
+    fetch(`https://manganato.herokuapp.com/manga/${manga.id}`)
       .then((response) => response.json())
-      .then((data) => {
+      .then(async (data) => {
+        try {
+          const history = await database.getHistory(manga);
+          setHistory(history);
+        } catch (error) {
+          console.log(error);
+        }
+
         setMangaInfo(data);
         setLoading(false);
       });
@@ -40,10 +49,10 @@ export default function MangaInfo({ navigation, route }: any) {
 
   return (
     <View>
-      {mangaInfo.Chapters && (
+      {mangaInfo.chapters && (
         <FlatList
           style={{}}
-          data={mangaInfo.Chapters}
+          data={mangaInfo.chapters}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => {
@@ -62,10 +71,19 @@ export default function MangaInfo({ navigation, route }: any) {
                 borderBottomColor: "#ddd",
               }}
             >
-              <Text>{item.ChapterName}</Text>
+              <Text
+                style={{
+                  color:
+                    history.filter((h) => h.chapter_id === item.id).length > 0
+                      ? "gray"
+                      : "#000",
+                }}
+              >
+                {item.chapter_name}
+              </Text>
             </TouchableOpacity>
           )}
-          keyExtractor={(item) => item.ID}
+          keyExtractor={(item) => item.id}
         />
       )}
     </View>
