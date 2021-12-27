@@ -9,18 +9,9 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import { ActivityIndicator } from "react-native-paper";
+import { ActivityIndicator, Surface } from "react-native-paper";
 import database from "./database";
 import { Manga } from "./models";
-
-function sliceIntoChunks(arr: Manga[], chunkSize: number) {
-  const res = [];
-  for (let i = 0; i < arr.length; i += chunkSize) {
-    const chunk = arr.slice(i, i + chunkSize);
-    res.push(chunk);
-  }
-  return res;
-}
 
 export default function Latest() {
   const [latest, setLatest] = React.useState<Manga[]>([]);
@@ -64,23 +55,70 @@ export default function Latest() {
             }}
             style={{
               flex: 1,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: 10,
             }}
           >
-            <Image
-              source={{ uri: item.image }}
+            <Surface
               style={{
-                width: Dimensions.get("window").width / 4,
-                aspectRatio: 2 / 3,
+                zIndex: 1,
+                elevation: 2,
+                borderRadius: 4,
+                backgroundColor: "#ffffff",
+                flexDirection: "row",
+                padding: 10,
+                margin: 10,
+                marginBottom: 0,
               }}
-            />
-            <View style={{ flex: 1, flexDirection: "column" }}>
-              <Text>{item.name}</Text>
-              <Text>{item.author.name}</Text>
-            </View>
+            >
+              <Image
+                source={{ uri: item.image }}
+                style={{
+                  width: Dimensions.get("window").width / 4,
+                  aspectRatio: 2 / 3,
+                }}
+              />
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "column",
+                  margin: 10,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "bold",
+                    color: "#000",
+                    paddingBottom: 5,
+                  }}
+                >
+                  {item.name}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: "gray",
+                    paddingBottom: 5,
+                  }}
+                >
+                  {item.author.name}
+                </Text>
+
+                {item.chapters &&
+                  item.chapters.map((chapter) => {
+                    return (
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          paddingBottom: 5,
+                        }}
+                        key={chapter.id}
+                      >
+                        {chapter.chapter_name}
+                      </Text>
+                    );
+                  })}
+              </View>
+            </Surface>
           </TouchableOpacity>
         );
       }}

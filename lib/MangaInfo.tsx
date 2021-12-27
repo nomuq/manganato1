@@ -77,9 +77,21 @@ export default function MangaInfo({ navigation, route }: any) {
                     history.filter((h) => h.chapter_id === item.id).length > 0
                       ? "gray"
                       : "#000",
+                  flexWrap: "wrap",
+                  flex: 1,
                 }}
               >
                 {item.chapter_name}
+              </Text>
+              <Text
+                style={{
+                  color:
+                    history.filter((h) => h.chapter_id === item.id).length > 0
+                      ? "gray"
+                      : "#000",
+                }}
+              >
+                {item.uploaded}
               </Text>
             </TouchableOpacity>
           )}
